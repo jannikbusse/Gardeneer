@@ -7,7 +7,7 @@ unsigned long currentTime = 0;
 
 void setup() {
 
-  loadConfig(plants);
+  loadConfig();
   currentTime = millis();
 }
 
@@ -16,9 +16,9 @@ void loop() {
 
   currentTime = millis();
 
-  if(handleBluetoothConnection(plants)) 
+  if(handleBluetoothConnection()) 
   {
-    saveConfig(plants);
+    saveConfig();
   }
 
   if(isLogReady())

@@ -16,7 +16,7 @@ int waterPlant(plant &p)
     return -1;
 }
 
-int loadConfig(plant plants[])
+int loadConfig()
 {
     //TODO
     for(int i = 0; i < 4; i ++)
@@ -28,7 +28,7 @@ int loadConfig(plant plants[])
     return 0;
 }
 
-int saveConfig(plant plants[])
+int saveConfig()
 {
     //TODO
     return -1;
@@ -49,7 +49,7 @@ int updatePlant(int pinID, String name, mode mode,
     return 0;
 }
 
-int handleBluetoothConnection(plant plants[]) //returns 1 if config has to be saved. Update plant database
+int handleBluetoothConnection() //returns 1 if config has to be saved. Update plant database
 {
     //TODO
     if(Serial.available() > 0)  
