@@ -11,11 +11,9 @@ static int ringBufferId = 0;
 
 struct plant
 {
-
     bool active = false;
     unsigned long lastwaterd = 0;
     unsigned long waterFrequency = 0; //Frequency is time between watering periods here!!
-    unsigned long dryPerioStart = 0;
     unsigned long wateringDuration = 0;
     
     float drynessThreshold = 0;
@@ -39,6 +37,21 @@ struct plant
         timestamps[ringBufferId] = millis();
     }
 
+    bool isHydrationReady()
+    {
+        //if 4 out of the last 5 values were below the threshold, its ready
+        int counter = 0;
+        for(int i = 0; i < 5; i ++)
+        {
+            if(hydrationLevels[(ringBufferId - i + logHistory)%logHistory] < drynessThreshold) counter ++;
+        }
+        if(counter >= 4)
+        {
+            return true;
+        }
+        return false;
+    }
+
 };
 
 bool isLogReady()
@@ -51,3 +64,6 @@ bool isLogReady()
     }
     return false;
 }
+
+
+plant plants[4];

@@ -2,7 +2,6 @@
 #include "plant.h"
 #include "io.h"
 
-plant plants[4];
 
 unsigned long currentTime = 0;
 
@@ -24,7 +23,7 @@ void loop() {
 
   if(isLogReady())
   {
-    ringBufferId = (ringBufferId + 1 )%logHistory; //increase buffer pointer
+    ringBufferId = (ringBufferId + 1) % logHistory; //increase buffer pointer
 
     for(auto &p: plants)
     {
@@ -39,7 +38,7 @@ void loop() {
     {
       waterPlant(p);
     }
-    if(p.wateringmode == HYDRATION && getHydrationFromPlant(p) < p.drynessThreshold && (millis() - p.lastwaterd) > 10*60*1000)
+    if(p.wateringmode == HYDRATION && p.isHydrationReady() && (millis() - p.lastwaterd) > 10*60*1000)
     {
       waterPlant(p);
     }
