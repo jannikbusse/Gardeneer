@@ -1,3 +1,5 @@
+#pragma once
+
 #include "plant.h"
 
 
