@@ -13,7 +13,7 @@ void readFromEEPROM(int position, int size, unsigned char* res)
 
     for(int i = 0; i < size; i++)
     {
-        res[size - 1 - i] = EEPROM.read(position + i);
+        res[i] = EEPROM.read(position + i);
     }
 }
 
@@ -23,7 +23,7 @@ void writeToEEPROM(int position, int size, unsigned char* ptr)
     if(size <= 0) return;
     for(int i = 0; i < size; i ++)
     {
-        EEPROM.write(i + position, (*(ptr+ size - 1- i)));
+        EEPROM.write(i + position, (*(ptr+  i)));
     }
 }
 
@@ -43,9 +43,10 @@ void eepromTest()
     //writeToEEPROM(0, sizeof(storeStruct), (unsigned char*)&ss);
 
     storeStruct loaded;
+    float dry = 0;    
 
     readFromEEPROM(0, sizeof(storeStruct), (unsigned char*)&loaded);
-    Serial.println(ss.wateringDuration);
+    readFromEEPROM(9, sizeof(float), (unsigned char*)&dry);
 
 }
 
