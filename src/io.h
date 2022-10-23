@@ -1,6 +1,53 @@
 #pragma once
 
+#include <EEPROM.h>
 #include "plant.h"
+
+
+
+
+void readFromEEPROM(int position, int size, unsigned char* res)
+{
+    if(size <= 0) return;
+    
+
+    for(int i = 0; i < size; i++)
+    {
+        res[size - 1 - i] = EEPROM.read(position + i);
+    }
+}
+
+
+void writeToEEPROM(int position, int size, unsigned char* ptr)
+{
+    if(size <= 0) return;
+    for(int i = 0; i < size; i ++)
+    {
+        EEPROM.write(i + position, (*(ptr+ size - 1- i)));
+    }
+}
+
+
+void eepromTest()
+{
+    Serial.println("started eeprom test");
+
+    storeStruct ss;
+    ss.active = 1;
+    ss.drynessThreshold = 3.1f;
+    ss.pinID = 2;
+    ss.waterFrequency = 1111;
+    ss.wateringDuration = 9999999;
+    ss.wateringmode = HYDRATION;
+
+    //writeToEEPROM(0, sizeof(storeStruct), (unsigned char*)&ss);
+
+    storeStruct loaded;
+
+    readFromEEPROM(0, sizeof(storeStruct), (unsigned char*)&loaded);
+    Serial.println(ss.wateringDuration);
+
+}
 
 
 float getHydrationFromPlant(plant &p)

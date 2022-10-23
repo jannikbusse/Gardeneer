@@ -9,6 +9,18 @@ static unsigned long lastLogged = 0;
 static int ringBufferId = 0;
 
 
+struct storeStruct
+{
+    bool active = false;
+    unsigned long waterFrequency = 0; //Frequency is time between watering periods here!!
+    unsigned long wateringDuration = 0;
+    
+    float drynessThreshold = 0;
+
+    int wateringmode = TIME;
+    int pinID = 0;
+};
+
 struct plant
 {
     bool active = false;
@@ -28,13 +40,14 @@ struct plant
 
     bool isWaterTimeReady()
     {
-        lastwaterd + waterFrequency < millis();
+        return lastwaterd + waterFrequency < millis();
     }
 
     int logHydration(float hydration)
     {
         hydrationLevels[ringBufferId] = hydration;
         timestamps[ringBufferId] = millis();
+        return 0;
     }
 
     bool isHydrationReady()

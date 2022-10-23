@@ -2,18 +2,27 @@
 #include "plant.h"
 #include "io.h"
 
-
 unsigned long currentTime = 0;
 
 void setup() {
+
+  Serial.begin(9600); // open the serial port at 9600 bps:
+  while (!Serial) ;
+
+
+
+  eepromTest();
 
   loadConfig();
   currentTime = millis();
 }
 
 void loop() {
-  delay(10);
 
+  return;
+
+  delay(10);
+  Serial.println(millis());
   currentTime = millis();
 
   if(handleBluetoothConnection()) 
