@@ -3,14 +3,24 @@
 #include <EEPROM.h>
 #include "plant.h"
 
+const uint16_t PLANT_MEM_OFFSET = 16;
+// | 0- 7 byte |  8 - 15     | 16 - 152 |
+// | HEADER    |  FREE SPACE | plants   |
+struct header
+{
+    uint16_t plantMemPositions[NUM_PLANTS];
+
+    ~header()
+    {
+        delete(plantMemPositions);
+    }
+};
 
 
 
 void readFromEEPROM(int position, int size, unsigned char* res)
 {
     if(size <= 0) return;
-    
-
     for(int i = 0; i < size; i++)
     {
         res[i] = EEPROM.read(position + i);
@@ -43,11 +53,11 @@ void eepromTest()
     //writeToEEPROM(0, sizeof(storeStruct), (unsigned char*)&ss);
 
     storeStruct loaded;
-    float dry = 0;    
+    unsigned long dry = 0;    
 
     readFromEEPROM(0, sizeof(storeStruct), (unsigned char*)&loaded);
-    readFromEEPROM(9, sizeof(float), (unsigned char*)&dry);
-
+    readFromEEPROM(1, sizeof(unsigned long), (unsigned char*)&dry);
+    Serial.println(dry);
 }
 
 
@@ -65,20 +75,40 @@ int waterPlant(plant &p)
 }
 
 int loadConfig()
-{
-    //TODO
-    for(int i = 0; i < 4; i ++)
+{   
+    header h;
+    readFromEEPROM(0, sizeof(header), (unsigned char*)&h); // read header to get plant positions
+    storeStruct tmp;
+
+    for(int i = 0; i < NUM_PLANTS; i++)
     {
-        plant p;
-        p.pinID = i;
-        p.name = "Plant";
+        if(h.plantMemPositions[i] <= 0)
+        {   
+            plant pl; //THIS MIGHT NOT WORK SINCE THE PLANT IS ALLOCATED OUT OF SCOPE... NEEDS TESTING
+            plants[i] = pl;
+            continue; //plant is not initialized
+        }
+
+        readFromEEPROM(h.plantMemPositions[i], sizeof(storeStruct), (unsigned char*)&tmp);
+        plants[i] = plant(tmp);
+
     }
     return 0;
 }
 
 int saveConfig()
 {
-    //TODO
+    header h;
+    for(int i = 0; i < NUM_PLANTS; i++)
+    {
+        uint16_t currentMemAdress = PLANT_MEM_OFFSET + sizeof(storeStruct)* i;
+        storeStruct tmp;
+        plants[i].getStoreStruct(tmp);
+
+        writeToEEPROM(currentMemAdress, sizeof(storeStruct), (unsigned char*)&tmp);
+        h.plantMemPositions[i] = currentMemAdress;
+    }
+    writeToEEPROM(0, sizeof(header), (unsigned char*)&h);
     return -1;
 }
 

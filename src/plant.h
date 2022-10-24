@@ -3,6 +3,7 @@
 
 enum mode{TIME, HYDRATION};
 
+const uint8_t NUM_PLANTS = 4;
 static const int logHistory = 200;
 static const unsigned long logFrequency = 60 * 60 * 1000; //log every hour. This is time between logs!!
 static unsigned long lastLogged = 0;
@@ -19,6 +20,10 @@ struct storeStruct
 
     int wateringmode = TIME;
     int pinID = 0;
+    
+    ~storeStruct()
+    {
+    }
 };
 
 struct plant
@@ -31,7 +36,6 @@ struct plant
     float drynessThreshold = 0;
 
     float hydrationLevels[logHistory];
-    unsigned long timestamps[logHistory];
 
     int wateringmode = TIME;
     int pinID = 0;
@@ -46,7 +50,6 @@ struct plant
     int logHydration(float hydration)
     {
         hydrationLevels[ringBufferId] = hydration;
-        timestamps[ringBufferId] = millis();
         return 0;
     }
 
@@ -65,6 +68,48 @@ struct plant
         return false;
     }
 
+    plant()
+    {
+        for(int i = 0; i < logHistory; i++)
+        {
+            hydrationLevels[i]= 0;
+        }
+        waterFrequency = 0;
+        wateringmode = TIME;
+        wateringDuration = 0;
+        active = false;
+        pinID = 0;
+        drynessThreshold = 0;
+
+    }
+    plant(storeStruct ss)
+    {
+        for(int i = 0; i < logHistory; i++)
+        {
+            hydrationLevels[i]= 0;
+        }
+        waterFrequency = ss.waterFrequency;
+        wateringmode = ss.wateringmode;
+        drynessThreshold = ss.drynessThreshold;
+        pinID = ss.pinID;
+        wateringDuration = ss.wateringDuration;
+        active = ss.active;
+    }
+    ~plant()
+    {
+        delete(hydrationLevels);
+    }
+
+    int getStoreStruct(storeStruct &res)
+    {
+        res.active = active;
+        res.drynessThreshold = drynessThreshold;
+        res.pinID = pinID;
+        res.waterFrequency = waterFrequency;
+        res.wateringDuration = wateringDuration;
+        res.wateringmode = wateringmode;
+    }
+
 };
 
 bool isLogReady()
@@ -79,4 +124,4 @@ bool isLogReady()
 }
 
 
-plant plants[4];
+plant plants[NUM_PLANTS];
