@@ -3,20 +3,19 @@
 #include <EEPROM.h>
 #include "plant.h"
 
+
 const uint16_t PLANT_MEM_OFFSET = 16;
 // | 0- 7 byte |  8 - 15     | 16 - 152 |
 // | HEADER    |  FREE SPACE | plants   |
+
 struct header
 {
     uint16_t plantMemPositions[NUM_PLANTS];
 
     ~header()
     {
-        delete(plantMemPositions);
     }
 };
-
-
 
 void readFromEEPROM(int position, int size, unsigned char* res)
 {
@@ -27,7 +26,6 @@ void readFromEEPROM(int position, int size, unsigned char* res)
     }
 }
 
-
 void writeToEEPROM(int position, int size, unsigned char* ptr)
 {
     if(size <= 0) return;
@@ -37,29 +35,19 @@ void writeToEEPROM(int position, int size, unsigned char* ptr)
     }
 }
 
+//SETS ALL BYTES TO 0
+void cleanEEPROM()
+{
+    for(int i = 0; i < EEPROM.length(); i ++)
+    {
+        EEPROM.write(i, 0);
+    }
+}
 
 void eepromTest()
 {
     Serial.println("started eeprom test");
-
-    storeStruct ss;
-    ss.active = 1;
-    ss.drynessThreshold = 3.1f;
-    ss.pinID = 2;
-    ss.waterFrequency = 1111;
-    ss.wateringDuration = 9999999;
-    ss.wateringmode = HYDRATION;
-
-    //writeToEEPROM(0, sizeof(storeStruct), (unsigned char*)&ss);
-
-    storeStruct loaded;
-    unsigned long dry = 0;    
-
-    readFromEEPROM(0, sizeof(storeStruct), (unsigned char*)&loaded);
-    readFromEEPROM(1, sizeof(unsigned long), (unsigned char*)&dry);
-    Serial.println(dry);
 }
-
 
 float getHydrationFromPlant(plant &p)
 {
@@ -88,13 +76,12 @@ int loadConfig()
             plants[i] = pl;
             continue; //plant is not initialized
         }
-
         readFromEEPROM(h.plantMemPositions[i], sizeof(storeStruct), (unsigned char*)&tmp);
         plants[i] = plant(tmp);
-
     }
     return 0;
 }
+
 
 int saveConfig()
 {
@@ -112,13 +99,17 @@ int saveConfig()
     return -1;
 }
 
-int updatePlant(int pinID, String name, mode mode, 
+int updatePlant(int pinID, char name[10], mode mode, 
     unsigned long waterFreq, unsigned long waterDuration, float drynessThreshold)
 {
     if(pinID > 4 || pinID < 0) return -1;
 
     plants[pinID].active = true;
-    plants[pinID].name = name;
+    for(int i = 0; i < 10; i++)
+    {
+        plants[pinID].name[i] = name[i];
+    }
+
     plants[pinID].wateringmode = mode;
     plants[pinID].waterFrequency = waterFreq;
     plants[pinID].wateringDuration = waterDuration;
@@ -132,8 +123,6 @@ int handleBluetoothConnection() //returns 1 if config has to be saved. Update pl
     //TODO
     if(Serial.available() > 0)  
     {
-
     }           
-
     //IF SOMETHING HAPPENED RETURN 1 SO CONFIG CAN BE SAVED
 }
