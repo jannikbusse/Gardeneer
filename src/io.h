@@ -4,9 +4,10 @@
 #include "plant.h"
 #include <SoftwareSerial.h> 
 
-SoftwareSerial MyBlue(9, 8); // RX | TX 
+SoftwareSerial BluetoothSerial(9, 8); // RX | TX 
+bool pumpActive = false;
 const uint16_t PLANT_MEM_OFFSET = 16;
-// | 0- 7 byte |  8 - 15     | 16 - 152 |
+// | 0- 7 byte |  8 - 15     | 16 - .... |
 // | HEADER    |  FREE SPACE | plants   |
 
 struct header
@@ -45,11 +46,6 @@ void cleanEEPROM()
     }
 }
 
-void eepromTest()
-{
-    Serial.println("started eeprom test");
-}
-
 float getHydrationFromPlant(plant &p)
 {
     //TODO
@@ -61,8 +57,9 @@ int waterPlant(plant &p)
     Serial.print("Start watering ");
     Serial.println(p.name);
     delay(10);
-    MyBlue.print("Start watering ");
-    MyBlue.println(p.name);
+    BluetoothSerial.print("Start watering ");
+    BluetoothSerial.println(p.name);
+    pumpActive = true;
     p.isWatering = true;
     p.startetWatering = millis();
     return 0;
@@ -73,12 +70,28 @@ int finishWaterPlant(plant &p)
     Serial.print("    Ended watering ");
     Serial.println(p.name);
     delay(10);
-    MyBlue.print("    Ended watering ");
-    MyBlue.println(p.name);
+    BluetoothSerial.print("    Ended watering ");
+    BluetoothSerial.println(p.name);
     p.lastwaterd = millis();
-    p.isWatering = 0;
+    p.isWatering = false;
+    pumpActive = false;
     return 0;
 }
+
+void logPlants()
+{
+    lastLogged = millis();
+    ringBufferId = (ringBufferId + 1) % LOG_HISTORY; //increase buffer pointer
+    BluetoothSerial.println("Logging plants");
+    delay(10);
+    Serial.println("Logging Plants");
+
+    for(auto &p: plants)
+    {
+      p.logHydration(getHydrationFromPlant(p));
+    }
+}
+
 
 int loadConfig()
 {   
@@ -138,23 +151,23 @@ int handleBluetoothConnection() //returns 1 if config has to be saved. Update pl
 {
 //     return 0;
 //     storeStruct  ss;
-//   if (MyBlue.available()) {
+//   if (BluetoothSerial.available()) {
 //     char header = 0;
-//     MyBlue.readBytes(&header, 1);
+//     BluetoothSerial.readBytes(&header, 1);
 //     if(header == '~') //EQUAL TO 6F
 //     {
 //       Serial.println("check passed");
-//       MyBlue.readBytes((unsigned char*)&ss, sizeof(storeStruct));
+//       BluetoothSerial.readBytes((unsigned char*)&ss, sizeof(storeStruct));
 //       printStoreStruct(ss);
-//       while(MyBlue.available()){
-//         MyBlue.read(); // clear buffer
+//       while(BluetoothSerial.available()){
+//         BluetoothSerial.read(); // clear buffer
 //         Serial.println("D ");
 
 //       }
 //     }
 //     else{
-//       while(MyBlue.available()> 0){
-//         String c = MyBlue.readString(); // clear buffer
+//       while(BluetoothSerial.available()> 0){
+//         String c = BluetoothSerial.readString(); // clear buffer
 //         Serial.println(c);
 //       }
 //     }
@@ -164,6 +177,6 @@ int handleBluetoothConnection() //returns 1 if config has to be saved. Update pl
 
 void initBluetooth()
 {
-     MyBlue.begin(9600); 
+     BluetoothSerial.begin(9600); 
   
 }

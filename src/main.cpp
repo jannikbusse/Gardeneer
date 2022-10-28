@@ -11,7 +11,7 @@ void setup() {
     while (!Serial) ;
 
   initBluetooth();
-  MyBlue.println("Hello!");
+  BluetoothSerial.println("Hello!");
 
   //Serial.println("Ready to connect\nDefualt password is 1234 or 000"); 
 
@@ -40,6 +40,7 @@ void setup() {
   
 }
 
+
 void loop() {
 
 
@@ -47,25 +48,21 @@ void loop() {
 
   if(handleBluetoothConnection()) 
   {
+
   }
 
-  //if(isLogReady())
-  //{
-  //  ringBufferId = (ringBufferId + 1) % logHistory; //increase buffer pointer
-
-  //  for(auto &p: plants)
-  //  {
-  //    p.logHydration(getHydrationFromPlant(p));
-  //  }
-  //}
+  if(isLogReady())
+  {
+    logPlants();
+  }
   for(int i = 0; i < NUM_PLANTS; i ++)
   {
 
-    if(!plants[i].isWatering && plants[i].wateringmode == TIME && plants[i].isWaterTimeAvailable())
+    if(!pumpActive && !plants[i].isWatering && plants[i].wateringmode == TIME && plants[i].isWaterTimeAvailable())
     {
       waterPlant(plants[i]);
     }
-    if(!plants[i].isWatering && plants[i].wateringmode == HYDRATION && plants[i].isHydrationReady() && (millis() - plants[i].lastwaterd) > 10UL*60UL*1000UL)
+    if(!pumpActive && !plants[i].isWatering && plants[i].wateringmode == HYDRATION && plants[i].isHydrationReady() && (millis() - plants[i].lastwaterd) > 10UL*60UL*1000UL)
     {
       waterPlant(plants[i]);
     }

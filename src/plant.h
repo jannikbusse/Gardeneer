@@ -4,15 +4,15 @@
 enum mode{TIME, HYDRATION};
 
 const uint8_t NUM_PLANTS = 4;
-static const int logHistory = 50;
-static const unsigned long logFrequency = 60UL * 60UL * 1000UL; //log every hour. This is time between logs!!
-static unsigned long lastLogged = 0;
-static int ringBufferId = 0;
+const int LOG_HISTORY = 50; //How many log values will be buffered
+const unsigned long logFrequency = 4UL * 60UL * 60UL * 1000UL; //log every 4 hours. This is time between logs!!
+unsigned long lastLogged = 0;
+int ringBufferId = 0;
 
 
 String millisToString(unsigned long in)
 {
-    String res = "feewfwef";
+    String res = "";
 
     unsigned long hours = 0;
     unsigned long minutes = 0;
@@ -54,7 +54,7 @@ struct plant
     
     float drynessThreshold = 0;
 
-    float hydrationLevels[logHistory];
+    float hydrationLevels[LOG_HISTORY];
 
     int wateringmode = TIME;
     int pinID = 0;
@@ -89,7 +89,7 @@ struct plant
         int counter = 0;
         for(int i = 0; i < 5; i ++)
         {
-            if(hydrationLevels[(ringBufferId - i + logHistory)%logHistory] < drynessThreshold) counter ++;
+            if(hydrationLevels[(ringBufferId - i + LOG_HISTORY)%LOG_HISTORY] < drynessThreshold) counter ++;
         }
         if(counter >= 4)
         {
@@ -100,7 +100,7 @@ struct plant
 
     plant()
     {
-        for(int i = 0; i < logHistory; i++)
+        for(int i = 0; i < LOG_HISTORY; i++)
         {
             hydrationLevels[i]= 0;
         }
@@ -115,7 +115,7 @@ struct plant
     plant(storeStruct ss)
     {
 
-        for(int i = 0; i < logHistory; i++)
+        for(int i = 0; i < LOG_HISTORY; i++)
         {
             hydrationLevels[i]= 0;
         }
@@ -176,13 +176,7 @@ struct plant
 
 bool isLogReady()
 {
-    unsigned long current = millis();
-    if(lastLogged + logFrequency < current)
-    {
-        lastLogged = current;
-        return true;
-    }
-    return false;
+    return (lastLogged + logFrequency < millis());
 }
 
 void printStoreStruct(storeStruct &s)
