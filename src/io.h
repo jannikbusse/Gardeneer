@@ -2,8 +2,9 @@
 
 #include <EEPROM.h>
 #include "plant.h"
+#include <SoftwareSerial.h> 
 
-
+SoftwareSerial MyBlue(9, 8); // RX | TX 
 const uint16_t PLANT_MEM_OFFSET = 16;
 // | 0- 7 byte |  8 - 15     | 16 - 152 |
 // | HEADER    |  FREE SPACE | plants   |
@@ -57,9 +58,26 @@ float getHydrationFromPlant(plant &p)
 
 int waterPlant(plant &p)
 {
+    Serial.print("Start watering ");
+    Serial.println(p.name);
+    delay(10);
+    MyBlue.print("Start watering ");
+    MyBlue.println(p.name);
+    p.isWatering = true;
+    p.startetWatering = millis();
+    return 0;
+}
+
+int finishWaterPlant(plant &p)
+{
+    Serial.print("    Ended watering ");
+    Serial.println(p.name);
+    delay(10);
+    MyBlue.print("    Ended watering ");
+    MyBlue.println(p.name);
     p.lastwaterd = millis();
-    //TODO
-    return -1;
+    p.isWatering = 0;
+    return 0;
 }
 
 int loadConfig()
@@ -72,8 +90,6 @@ int loadConfig()
     {
         if(h.plantMemPositions[i] <= 0)
         {   
-            plant pl; //THIS MIGHT NOT WORK SINCE THE PLANT IS ALLOCATED OUT OF SCOPE... NEEDS TESTING
-            plants[i] = pl;
             continue; //plant is not initialized
         }
         readFromEEPROM(h.plantMemPositions[i], sizeof(storeStruct), (unsigned char*)&tmp);
@@ -120,9 +136,34 @@ int updatePlant(int pinID, char name[10], mode mode,
 
 int handleBluetoothConnection() //returns 1 if config has to be saved. Update plant database
 {
-    //TODO
-    if(Serial.available() > 0)  
-    {
-    }           
-    //IF SOMETHING HAPPENED RETURN 1 SO CONFIG CAN BE SAVED
+//     return 0;
+//     storeStruct  ss;
+//   if (MyBlue.available()) {
+//     char header = 0;
+//     MyBlue.readBytes(&header, 1);
+//     if(header == '~') //EQUAL TO 6F
+//     {
+//       Serial.println("check passed");
+//       MyBlue.readBytes((unsigned char*)&ss, sizeof(storeStruct));
+//       printStoreStruct(ss);
+//       while(MyBlue.available()){
+//         MyBlue.read(); // clear buffer
+//         Serial.println("D ");
+
+//       }
+//     }
+//     else{
+//       while(MyBlue.available()> 0){
+//         String c = MyBlue.readString(); // clear buffer
+//         Serial.println(c);
+//       }
+//     }
+
+//   }
+}
+
+void initBluetooth()
+{
+     MyBlue.begin(9600); 
+  
 }

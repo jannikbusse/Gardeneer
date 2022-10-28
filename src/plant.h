@@ -4,11 +4,26 @@
 enum mode{TIME, HYDRATION};
 
 const uint8_t NUM_PLANTS = 4;
-static const int logHistory = 100;
-static const unsigned long logFrequency = 60 * 60 * 1000; //log every hour. This is time between logs!!
+static const int logHistory = 50;
+static const unsigned long logFrequency = 60UL * 60UL * 1000UL; //log every hour. This is time between logs!!
 static unsigned long lastLogged = 0;
 static int ringBufferId = 0;
 
+
+String millisToString(unsigned long in)
+{
+    String res = "feewfwef";
+
+    unsigned long hours = 0;
+    unsigned long minutes = 0;
+    unsigned long seconds = 0;
+
+    hours = in/(60UL * 1000UL * 60UL);
+    minutes = (in - (hours * 60UL * 1000UL * 60UL))/(1000UL * 60UL);
+    seconds = (in - (hours * 60UL * 1000UL * 60UL) - minutes*(1000UL * 60UL))/1000UL;
+    res = String(hours) + ":" + String(minutes) + ":" + String(seconds);
+    return res;
+}
 
 struct storeStruct
 {
@@ -29,10 +44,13 @@ struct storeStruct
 
 struct plant
 {
+
+    bool isWatering = false;
     bool active = false;
     unsigned long lastwaterd = 0;
     unsigned long waterFrequency = 0; //Frequency is time between watering periods here!!
     unsigned long wateringDuration = 0;
+    unsigned long startetWatering = 0;
     
     float drynessThreshold = 0;
 
@@ -43,9 +61,9 @@ struct plant
 
     char name[10];
 
-    bool isWaterTimeReady()
+    bool isWaterTimeAvailable()
     {
-        return lastwaterd + waterFrequency < millis();
+        return (lastwaterd + waterFrequency < millis());
     }
 
     int logHydration(float hydration)
@@ -59,8 +77,14 @@ struct plant
         strncpy(name, sname, 10); 
     }
 
+    bool wateringFinished()
+    {
+        return startetWatering + wateringDuration < millis();
+    }
+
     bool isHydrationReady()
     {
+
         //if 4 out of the last 5 values were below the threshold, its ready
         int counter = 0;
         for(int i = 0; i < 5; i ++)
@@ -105,6 +129,7 @@ struct plant
         pinID = ss.pinID;
         wateringDuration = ss.wateringDuration;
         active = ss.active;
+        isWatering = false;
     }
     ~plant()
     {
@@ -127,14 +152,25 @@ struct plant
 
     void printToSerial()
     {
-        Serial.print("Plant: ");
+        Serial.println("Plant:            ");
         Serial.println(name);
+        Serial.print("Active:           ");
         Serial.println(active);
+        Serial.print("Drynessthreshold: ");
         Serial.println(drynessThreshold);
+        Serial.print("WateringFrequency:");
         Serial.println(waterFrequency);
+        //Serial.print("WateringFrequency:");
+        //Serial.println(millisToString(waterFrequency));
+        Serial.print("WateringDuration: ");
         Serial.println(wateringDuration);
+        Serial.print("Wateringmode:     ");
         Serial.println(wateringmode);
+        Serial.print("ID:               ");
         Serial.println(pinID);
+        Serial.print("LastWatere:       ");
+        Serial.println(lastwaterd);
+        Serial.println();
     }
 };
 
@@ -149,7 +185,7 @@ bool isLogReady()
     return false;
 }
 
-void printStoreStruct(storeStruct s)
+void printStoreStruct(storeStruct &s)
 {
     Serial.println(s.name);
     Serial.println(s.active);
