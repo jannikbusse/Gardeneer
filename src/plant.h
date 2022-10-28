@@ -5,7 +5,8 @@ enum mode{TIME, HYDRATION};
 
 const uint8_t NUM_PLANTS = 4;
 const int LOG_HISTORY = 50; //How many log values will be buffered
-const unsigned long logFrequency = 4UL * 60UL * 60UL * 1000UL; //log every 4 hours. This is time between logs!!
+//const unsigned long logFrequency = 4UL * 60UL * 60UL * 1000UL; //log every 4 hours. This is time between logs!!
+const unsigned long logFrequency = 4 * 1000UL; 
 unsigned long lastLogged = 0;
 int ringBufferId = 0;
 
@@ -54,7 +55,7 @@ struct plant
     
     float drynessThreshold = 0;
 
-    float hydrationLevels[LOG_HISTORY];
+    uint16_t hydrationLevels[LOG_HISTORY];
 
     int wateringmode = TIME;
     int pinID = 0;
@@ -66,7 +67,7 @@ struct plant
         return (lastwaterd + waterFrequency < millis());
     }
 
-    int logHydration(float hydration)
+    int logHydration(int hydration)
     {
         hydrationLevels[ringBufferId] = hydration;
         return 0;

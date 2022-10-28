@@ -4,6 +4,10 @@
 #include "plant.h"
 #include <SoftwareSerial.h> 
 
+//HYDROMETER PINS
+int rainPin[] = {A1,A2,A3,A4}; 
+int controllPin[] = {2,2,2,2};
+
 SoftwareSerial BluetoothSerial(9, 8); // RX | TX 
 bool pumpActive = false;
 const uint16_t PLANT_MEM_OFFSET = 16;
@@ -46,10 +50,13 @@ void cleanEEPROM()
     }
 }
 
-float getHydrationFromPlant(plant &p)
+uint16_t getHydrationFromPlant(int pinID)
 {
-    //TODO
-    return -1;
+    digitalWrite(controllPin[pinID], HIGH);
+    delay(1000);
+    int read = (uint16_t)analogRead(rainPin[pinID]);
+    digitalWrite(controllPin[pinID], LOW);
+    return read;
 }
 
 int waterPlant(plant &p)
@@ -86,10 +93,12 @@ void logPlants()
     delay(10);
     Serial.println("Logging Plants");
 
-    for(auto &p: plants)
-    {
-      p.logHydration(getHydrationFromPlant(p));
-    }
+    int log = getHydrationFromPlant(0);
+    Serial.println(log);
+    //for(int i = 0; i < NUM_PLANTS; i ++)
+    //{
+    //  plants[i].logHydration(getHydrationFromPlant(i));
+    //}
 }
 
 
@@ -106,7 +115,9 @@ int loadConfig()
             continue; //plant is not initialized
         }
         readFromEEPROM(h.plantMemPositions[i], sizeof(storeStruct), (unsigned char*)&tmp);
+        tmp.name[10] = '\0'; //DIRTY DIRTY FIX!
         plants[i] = plant(tmp);
+
     }
     return 0;
 }
@@ -178,5 +189,14 @@ int handleBluetoothConnection() //returns 1 if config has to be saved. Update pl
 void initBluetooth()
 {
      BluetoothSerial.begin(9600); 
-  
+}
+
+void initHydrationPins()
+{
+    for(int i = 0; i < 4; i ++)
+    {
+        pinMode(rainPin[i], INPUT);
+        pinMode(controllPin[i], OUTPUT);
+        digitalWrite(rainPin[i], LOW);
+    }
 }
